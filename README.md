@@ -32,81 +32,179 @@ docker compose up -d
 #verify Elasticsearch is running
 curl http://localhost:9200
 
+##  2.🐳 Elasticsearch Setup
 #you can see sample data in sample-courses.json placed in src/main/resourses it looks like,
 
-{
-  "id": "1",
-  "title": "Math Magic",
-  "description": "Fun math course for young learners.",
-  "category": "Math",
-  "type": "COURSE",
-  "gradeRange": "1st–3rd",
-  "minAge": 6,
-  "maxAge": 8,
-  "price": 19.99,
-  "nextSessionDate": "2025-07-20T10:00:00Z"
-}
 
-# now run spring boot
-##▶️ Using terminal/command line:
-###On Windows, use:
-
-mvnw spring-boot:run
-
-#OR if you have Maven installed globally:
-
-mvn spring-boot:run
-
-# OR run directly from ide
-
-
-#once spring boot started you can start testing using browser or curl with given endpoints below
-
-#for title and description
-http://localhost:8080/api/search?q=math
-
-#age range only
-http://localhost:8080/api/search?minAge=6&maxAge=10
-
-#price range only 
-http://localhost:8080/api/search?minPrice=10&maxPrice=50
-
-#age and price range both
-http://localhost:8080/api/search?minAge=6&maxAge=10&minPrice=10&maxPrice=50
-
-#category Filter
-http://localhost:8080/api/search?category=Science
-
-#type Filter
-http://localhost:8080/api/search?type=COURSE
-
-## WARNING in type filter there is an issue of small and capital letter search capital always in category also
-
-## Sorting 
-  #by price
-  http://localhost:8080/api/search?sort=pricedesc
+  {
+    "id": "1",
+    "title": "Math Magic",
+    "description": "Fun math course for young learners.",
+    "category": "Math",
+    "type": "COURSE",
+    "gradeRange": "1st–3rd",
+    "minAge": 6,
+    "maxAge": 8,
+    "price": 19.99,
+    "nextSessionDate": "2025-07-20T10:00:00Z"
+  }
+  ```
   
-  #by date
-  http://localhost:8080/api/search?sort=datedesc
-
-
-# Full Search
+  When Spring Boot starts, this data is **automatically indexed** into Elasticsearch under the `courses` index.
+  
+  ---
+  
+  ## ▶️ Running the Spring Boot App
+  
+  ### Terminal / Command Line
+  
+  ```bash
+  # Windows
+  mvnw spring-boot:run
+  
+  # Or if Maven is globally installed
+  mvn spring-boot:run
+  ```
+  
+  ### IDE
+  
+  You can also run `CourseSearchApplication.java` directly from IntelliJ, VS Code, or Eclipse.
+  
+  ---
+  
+  ## 🔍 API: Course Search
+  
+  ### 🔗 Base Endpoint
+  
+  ```
+  GET http://localhost:8080/api/search
+  ```
+  
+  ### Supported Query Parameters
+  
+  | Parameter     | Description                         |
+  |---------------|-------------------------------------|
+  | `q`           | Full-text search on title & description |
+  | `minAge`/`maxAge` | Age range filter                 |
+  | `minPrice`/`maxPrice` | Price range filter          |
+  | `category`    | Filter by course category           |
+  | `type`        | Filter by course type               |
+  | `startDate`   | Filter by next session date (⚠️ not working yet) |
+  | `sort`        | Sort by `pricedesc`, `priceasc`, or `datedesc` |
+  | `page`        | Page number (default = 0)           |
+  | `size`        | Page size (default = 10)            |
+  
+  ---
+  
+  ## 🧪 Example Requests
+  
+  #### 🔎 Full-text Search (Title & Description)
+  ```bash
+  http://localhost:8080/api/search?q=math
+  ```
+  
+  #### 🎯 Age Range
+  ```bash
+  http://localhost:8080/api/search?minAge=6&maxAge=10
+  ```
+  
+  #### 💰 Price Range
+  ```bash
+  http://localhost:8080/api/search?minPrice=10&maxPrice=50
+  ```
+  
+  #### 🔄 Age + Price Range
+  ```bash
+  http://localhost:8080/api/search?minAge=6&maxAge=10&minPrice=10&maxPrice=50
+  ```
+  
+  #### 📚 Category Filter
+  ```bash
+  http://localhost:8080/api/search?category=Science
+  ```
+  
+  #### 🧩 Type Filter
+  ```bash
+  http://localhost:8080/api/search?type=COURSE
+  ```
+  
+  > ⚠️ Note: Category and Type filters are **case-sensitive**. Use uppercase values (e.g., `COURSE`, `CLUB`).
+  
+  ---
+  
+  ### 🔃 Sorting
+  
+  - **By Price Descending**:
+    ```bash
+    http://localhost:8080/api/search?sort=pricedesc
+    ```
+  
+  - **By Date Descending**:
+    ```bash
+    http://localhost:8080/api/search?sort=datedesc
+    ```
+  
+  ---
+  
+  ### 🧠 Combined Filters Example (Full Search)
+  
+  ```bash
   http://localhost:8080/api/search?q=Geometry&minAge=6&maxAge=15&minPrice=10&maxPrice=50&category=Math&type=COURSE&sort=pricedesc&page=0&size=10
-
-
-# Fuzziness search
+  ```
+  
+  ---
+  
+  ### 🌀 Fuzzy Search (Typos Handled Automatically)
+  
+  ```bash
   http://localhost:8080/api/search?q=ath
+  ```
+  
+  > Example: `"ath"` matches `"Math"` or `"Path Planning"` due to fuzzy matching.
+  
+  ---
+  
+  ## 🐞 Known Issues
+  
+  - ❌ `startDate` filter currently not working
+  - ❌ `sort=title` not yet implemented
+  - ⚙️ Autocomplete search feature is not added yet
+  
+  ---
+  
+  ## 📦 Project Structure
+  
+  ```
+  ├── config/             # Elasticsearch client config
+  ├── controller/         # REST controllers
+  ├── model/           # Elasticsearch document (CourseDocument)
+  ├── dto/                # SearchRequestDTO
+  ├── repository/         # ElasticsearchRepository (optional)
+  ├── service/            # SearchService with filters & logic
+  ├── resources/
+  │   └── sample-courses.json
+  
+  ```
+  ── docker-compose.yml
+  ---
+  
+  ## 👤 Author
+  
+  **Sanskar Dwivedi**  
+  📬 [Github](https://github.com/Sanskar-dwivedi325)
+  🛠️ Passionate about backend & search systems
+  
+  ---
+  
+  > 📝 *Thank you for reviewing this project. More improvements coming soon!*
+  
+ 
 
 
 
-## issues 
-### there is an issue in startdate searching and title based sorting 
-#### i will work on it and in autocomplete search
 
 
-@author
-Sanskar Dwivedi
-#Thankyou
+
   
 
 

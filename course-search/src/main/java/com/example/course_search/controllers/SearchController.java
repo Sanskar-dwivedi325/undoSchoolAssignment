@@ -29,15 +29,7 @@ public class SearchController {
     @GetMapping
     public SearchResponse searchCourses(SearchRequestDTO request) throws IOException {
         List<CourseDocument> courses = searchService.searchCourses(request);
-        System.out.println(request.getMaxAge());
-        System.out.println(request.getMinAge());
-        System.out.println(request.getSort());
-        System.out.println(request.getQ());
-        System.out.println(request.getType());
-        System.out.println(request.getCategory());
-        System.out.println(request.getMinPrice());
-        System.out.println(request.getMaxPrice());
-        System.out.println(request.getStartDate());
+
 
 
         return new SearchResponse(courses.size(), courses);
