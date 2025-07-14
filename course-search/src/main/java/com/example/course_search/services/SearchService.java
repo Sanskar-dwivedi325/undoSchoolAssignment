@@ -57,8 +57,8 @@ public class SearchService {
         boolean hasFullTextQuery = request.getQ() != null && !request.getQ().trim().isEmpty();
         if (hasFullTextQuery) {
             MultiMatchQuery multiMatchQuery = MultiMatchQuery.of(mq -> mq
-                    .fields("title", "description").fuzziness("3")
-                    .query(request.getQ().trim()).fuzziness("2")
+                    .fields("title", "description").fuzziness("AUTO")
+                    .query(request.getQ().trim()).fuzziness("AUTO")
 
             );
             boolQuery.must(Query.of(q -> q.multiMatch(multiMatchQuery)));
